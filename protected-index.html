@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StreamingHub • Free movie</title>
+  <style id="obfuscated-styles">
+    /* Styles will be injected dynamically */
+  </style>
+</head>
+<body>
+
+<!-- Protected header structure with dynamic content loading -->
+<header id="main-header">
+  <!-- Header content loaded dynamically -->
+</header>
+
+<main class="container" id="app">
+  <!-- Loading indicator -->
+  <div id="loading-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0d10;display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="color:#e3e7ee;">Ładowanie...</div>
+  </div>
+</main>
+
+<footer id="main-footer">
+  <!-- Footer content loaded dynamically -->
+</footer>
+
+<script>
+(function() {
+  'use strict';
+  
+  // Encoded configuration
+  const _0x1a2b = {
+    'api': 'aHR0cDovL2xvY2FsaG9zdDozMDAw',
+    'key1': 'YXBp',
+    'key2': 'YXV0aA==',
+    'key3': 'bW92aWVz'
+  };
+  
+  const _decode = (str) => atob(str);
+  const _encode = (str) => btoa(str);
+  
+  // Anti-debugging measures
+  let _devtools = false;
+  let _debugCount = 0;
+  
+  // DevTools detection
+  setInterval(() => {
+    const start = performance.now();
+    debugger;
+    const end = performance.now();
+    
+    if (end - start > 100) {
+      _devtools = true;
+      _debugCount++;
+      
+      if (_debugCount > 3) {
+        window.location.href = 'https://google.com';
+        return;
+      }
+    }
+  }, 1000);
+  
+  // Console protection
+  const _originalLog = console.log;
+  console.log = function() {
+    if (_devtools) {
+      window.location.href = 'https://google.com';
+      return;
+    }
+    return _originalLog.apply(console, arguments);
+  };
+  
+  // Keyboard shortcuts blocking
+  document.addEventListener('keydown', function(e) {
+    // F12, Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+U, Ctrl+S
+    if (e.keyCode === 123 || 
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 67)) ||
+        (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83))) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  });
+  
+  // Context menu blocking
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  // Window resize detection (DevTools opening)
+  let windowHeight = window.innerHeight;
+  let windowWidth = window.innerWidth;
+  
+  setInterval(() => {
+    if (window.innerHeight < windowHeight * 0.7 || 
+        window.innerWidth < windowWidth * 0.7) {
+      if (!_devtools) {
+        _devtools = true;
+        setTimeout(() => {
+          window.location.href = 'https://google.com';
+        }, 1000);
+      }
+    }
+  }, 500);
+  
+  // Encoded HTML templates
+  const _templates = {
+    header: 'PGRpdiBjbGFzcz0ibmF2IGNvbnRhaW5lciI+CiAgPGEgY2xhc3M9ImJyYW5kIiBocmVmPSIjIiBvbmNsaWNrPSJVSS5zaG93KCdob21lJykiPvCfjoYgU3RyZWFtaW5nSHViPC9hPgogIDxmb3JtIG9uc3VibWl0PSJldmVudC5wcmV2ZW50RGVmYXVsdCgpOyBVSS5zZWFyY2godGhpcy5xLnZhbHVlKSIgc3R5bGU9ImZsZXg6MSI+CiAgICA8aW5wdXQgdHlwZT0ic2VhcmNoIiBuYW1lPSJxIiBwbGFjZWhvbGRlcj0iU3p1a2FqIGZpbG3Ds3cuLi4iIC8+CiAgPC9mb3JtPgogIDxuYXYgY2xhc3M9Im1lbnUgZmxleCI+CiAgICA8YSBpZD0iZmlsbUxpbmsiIGhyZWY9IiMiIG9uY2xpY2s9IlVJLnNob3coJ2hvbWUnKSI+RmlsbXk8L2E+CiAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJVSS5zaG93KCd0b3AnKSI+VE9QPC9hPgogICAgPGEgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygnbWUnKSI+TW9qYSBiaWJsaW90ZWthPC9hPgogICAgPGEgaWQ9ImFkbWluTGluayIgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygnYWRtaW4nKSIgY2xhc3M9ImhpZGRlbiI+QWRtaW48L2E+CiAgICA8c3BhbiBpZD0iYXV0aExpbmtzIj4KICAgICAgPGEgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygnbG9naW4nKSI+WmFsb2d1ajwvYT4KICAgICAgPGEgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygncmVnaXN0ZXInKSIgY2xhc3M9ImJ0biI+UmVqZXN0cmFjamE8L2E+CiAgICA8L3NwYW4+CiAgICA8Zm9ybSBpZD0ibG9nb3V0Rm9ybSIgY2xhc3M9ImhpZGRlbiIgb25zdWJtaXQ9ImV2ZW50LnByZXZlbnREZWZhdWx0KCk7IEF1dGgubG9nb3V0KCkiPgogICAgICA8YnV0dG9uIGNsYXNzPSJidG4gc2Vjb25kYXJ5Ij5XeWxvZ3VqPC9idXR0b24+CiAgICA8L2Zvcm0+CiAgPC9uYXY+CjwvZGl2Pg==',
+    
+    footer: 'wqkgPHNjcmlwdD5kb2N1bWVudC53cml0ZShuZXcgRGF0ZSgpLmdldEZ1bGxZZWFyKCkpPC9zY3JpcHQ+IFN0cmVhbWluZ0h1YiDigKIgZnJlZSB2aWRlbw==',
+    
+    styles: 'OnJvb3R7LS1iZzojMGIwZDEwOy0tY2FyZDojMTUxOTIyOy0tdGV4dDojZTNlN2VlOy0tbXV0ZWQ6I2ExYTliODstLWJyYW5kOiM0Zjdjmm'
+  };
+  
+  // Decode and inject styles
+  function _injectStyles() {
+    const styleEl = document.getElementById('obfuscated-styles');
+    const decodedStyles = `
+      :root{--bg:#0b0d10;--card:#151922;--text:#e3e7ee;--muted:#a1a9b8;--brand:#4f7cff;--border:#232a37}
+      *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
+      a{color:var(--text);text-decoration:none}
+      .container{max-width:1100px;margin:0 auto;padding:16px}
+      header{position:sticky;top:0;background:rgba(11,13,16,.8);backdrop-filter:blur(6px);z-index:10}
+      .nav{display:flex;gap:12px;align-items:center;padding:12px 16px}
+      .brand{font-weight:800}
+      .nav input[type=search]{flex:1;background:#0e1218;border:1px solid var(--border);color:#fff;padding:10px 12px;border-radius:12px}
+      .menu a,.menu button{padding:8px 10px;color:var(--muted);background:none;border:none;cursor:pointer}
+      .btn{background:var(--brand);color:#fff;padding:10px 14px;border-radius:12px;border:none;cursor:pointer}
+      .btn.secondary{background:#2a3446}
+      .badge{font-size:12px;color:#fff;background:#2a3446;padding:2px 8px;border-radius:999px}
+      .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+      .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+      .card.p{padding:12px;height:94px}
+      .card img{width:100%;height:200px;object-fit:cover;display:block}
+      .small{font-size:12px;color:var(--muted)}
+      .alert{background:#152031;padding:10px;border-radius:10px;color:#b7c4e6;margin:8px 0}
+      .flex{display:flex;gap:12px;align-items:center}
+      .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .mt-2{margin-top:8px}.mt-4{margin-top:16px}.mt-8{margin-top:32px}
+      textarea,input,select{width:100%;padding:10px;background:#0e1218;border:1px solid var(--border);color:#fff;border-radius:10px}
+      footer{color:var(--muted);text-align:center;padding:30px 0}
+      .hidden{display:none}
+      .video-container{position:relative;width:100%;padding-bottom:56.25%;height:0;overflow:hidden;background:black;border-radius:22px}
+      .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+    `;
+    styleEl.textContent = decodedStyles;
+  }
+  
+  // Decode and inject header/footer
+  function _injectContent() {
+    document.getElementById('main-header').innerHTML = _decode(_templates.header);
+    document.getElementById('main-footer').innerHTML = _decode(_templates.footer);
+  }
+  
+  // API wrapper with obfuscation
+  const _api = {
+    base: _decode(_0x1a2b.api),
+    
+    async _request(endpoint, options = {}) {
+      const url = `${this.base}/${_decode(_0x1a2b.key1)}/${endpoint}`;
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers
+        }
+      });
+      return response.json();
+    },
+    
+    async login(email, password) {
+      return this._request(`${_decode(_0x1a2b.key2)}/login`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          [_encode('email')]: email,
+          [_encode('password')]: password 
+        })
+      });
+    },
+    
+    async register(username, email, password) {
+      return this._request(`${_decode(_0x1a2b.key2)}/register`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          [_encode('username')]: username,
+          [_encode('email')]: email,
+          [_encode('password')]: password 
+        })
+      });
+    },
+    
+    async getMovies(filters = {}) {
+      const params = new URLSearchParams(filters);
+      return this._request(`${_decode(_0x1a2b.key3)}?${params}`);
+    },
+    
+    async getMovie(id) {
+      return this._request(`${_decode(_0x1a2b.key3)}/${id}`);
+    },
+    
+    async getProfile() {
+      return this._request('user/profile');
+    }
+  };
+  
+  // Initialize application
+  function _init() {
+    // Remove loading screen
+    setTimeout(() => {
+      const loading = document.getElementById('loading-screen');
+      if (loading) loading.remove();
+    }, 1000);
+    
+    // Inject content
+    _injectStyles();
+    _injectContent();
+    
+    // Initialize UI (simplified version)
+    window._secureApp = {
+      api: _api,
+      currentUser: null,
+      
+      async show(view, params = {}) {
+        const app = document.getElementById('app');
+        
+        if (view === 'home') {
+          const moviesData = await _api.getMovies({ sort: 'new' });
+          const movies = moviesData.data || [];
+          
+          app.innerHTML = `
+            <section class="section mt-8">
+              <h2>Nowo dodane</h2>
+              <div class="grid">
+                ${movies.map(m => this._movieCard(m)).join('')}
+              </div>
+            </section>
+          `;
+        }
+        // Add other views...
+      },
+      
+      _movieCard(movie) {
+        return `
+          <div class="card">
+            <img src="${movie.thumb}" alt="${movie.title}">
+            <div class="card p">
+              <strong>${movie.title}</strong>
+              <div class="small mt-2">${movie.duration || '?'} min • ${movie.year || '?'}</div>
+            </div>
+          </div>
+        `;
+      }
+    };
+    
+    // Start app
+    window._secureApp.show('home');
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _init);
+  } else {
+    _init();
+  }
+  
+})();
+</script>
+
+</body>
+</html>

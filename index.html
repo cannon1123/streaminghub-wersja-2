@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StreamingHub • Free movie</title>
+  <style id="main-styles"></style>
+</head>
+<body>
+
+<script>
+(function(){
+  document.addEventListener('keydown', function(e) {
+    var shortcuts = [
+      {key: 'F12'},
+      {key: 'U', ctrl: true},
+      {key: 'I', ctrl: true, shift: true},
+      {key: 'C', ctrl: true, shift: true},
+      {key: 'S', ctrl: true}
+    ];
+    
+    for(var i = 0; i < shortcuts.length; i++) {
+      var shortcut = shortcuts[i];
+      if(e.key === shortcut.key && 
+         (!shortcut.ctrl || e.ctrlKey) && 
+         (!shortcut.shift || e.shiftKey)) {
+        e.preventDefault();
+        return false;
+      }
+    }
+  });
+  
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+})();
+</script>
+
+<div id="header-container"></div>
+<main class="container" id="app"></main>
+<div id="footer-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+(function(){
+  console.log('[v0] Starting application initialization...');
+  
+  // Encoded CSS and HTML (Base64)
+  var encodedCSS = 'OnJvb3R7LS1iZzojMGIwZDEwOy0tY2FyZDojMTUxOTIyOy0tdGV4dDojZTNlN2VlOy0tbXV0ZWQ6I2ExYTliODstLWJyYW5kOiM0ZjdjZmY7LS1ib3JkZXI6IzIzMmEzN30qe2JveC1zaXppbmc6Ym9yZGVyLWJveH0gYm9keXttYXJnaW46MDtiYWNrZ3JvdW5kOnZhcigtLWJnKTtjb2xvcjp2YXIoLS10ZXh0KTtmb250LWZhbWlseTp1aS1zYW5zLXNlcmlmLHN5c3RlbS11aSwtYXBwbGUtc3lzdGVtLFNlZ29lIFVJLFJvYm90b30gYXtjb2xvcjp2YXIoLS10ZXh0KTt0ZXh0LWRlY29yYXRpb246bm9uZX0gLmNvbnRhaW5lcnttYXgtd2lkdGg6MTEwMHB4O21hcmdpbjowIGF1dG87cGFkZGluZzoxNnB4fSBoZWFkZXJ7cG9zaXRpb246c3RpY2t5O3RvcDowO2JhY2tncm91bmQ6cmdiYSgxMSwxMywxNiwuOCk7YmFja2Ryb3AtZmlsdGVyOmJsdXIoNnB4KTt6LWluZGV4OjEwfSAubmF2e2Rpc3BsYXk6ZmxleDtnYXA6MTJweDthbGlnbi1pdGVtczpjZW50ZXI7cGFkZGluZzoxMHB4IDE2cHh9IC5icmFuZHtmb250LXdlaWdodDo4MDB9IC5uYXYgaW5wdXRbdHlwZT1zZWFyY2hde2ZsZXg6MTtiYWNrZ3JvdW5kOiMwZTEyMTg7Ym9yZGVyOjFweCBzb2xpZCB2YXIoLS1ib3JkZXIpO2NvbG9yOiNmZmY7cGFkZGluZzoxMHB4IDEycHg7Ym9yZGVyLXJhZGl1czoxMnB4fSAubWVudSBhLC5tZW51IGJ1dHRvbntwYWRkaW5nOjhweCAxMHB4O2NvbG9yOnZhcigtLW11dGVkKTtiYWNrZ3JvdW5kOm5vbmU7Ym9yZGVyOm5vbmU7Y3Vyc29yOnBvaW50ZXJ9IC5idG57YmFja2dyb3VuZDp2YXIoLS1icmFuZCk7Y29sb3I6I2ZmZjtwYWRkaW5nOjEwcHggMTRweDtib3JkZXItcmFkaXVzOjEycHg7Ym9yZGVyOm5vbmU7Y3Vyc29yOnBvaW50ZXJ9IC5idG4uc2Vjb25kYXJ5e2JhY2tncm91bmQ6IzJhMzQ0Nn0gLmJhZGdle2ZvbnQtc2l6ZToxMnB4O2NvbG9yOiNmZmY7YmFja2dyb3VuZDojMmEzNDQ2O3BhZGRpbmc6MnB4IDhweDtib3JkZXItcmFkaXVzOjk5OXB4fSAuZ3JpZHtkaXNwbGF5OmdyaWQ7Z3JpZC10ZW1wbGF0ZS1jb2x1bW5zOnJlcGVhdChhdXRvLWZpbGwsbWlubWF4KDIwMHB4LDFmcikpO2dhcDoxMnB4fSAuY2FyZHtiYWNrZ3JvdW5kOnZhcigtLWNhcmQpO2JvcmRlcjoxcHggc29saWQgdmFyKC0tYm9yZGVyKTtib3JkZXItcmFkaXVzOjE0cHg7b3ZlcmZsb3c6aGlkZGVufSAuY2FyZC5we3BhZGRpbmc6MTJweDtoZWlnaHQ6OTRweH0gLmNhcmQgaW1ne3dpZHRoOjEwMCU7aGVpZ2h0OjIwMHB4O29iamVjdC1maXQ6Y292ZXI7ZGlzcGxheTpibG9ja30gLnNtYWxse2ZvbnQtc2l6ZToxMnB4O2NvbG9yOnZhcigtLW11dGVkKX0gLmFsZXJ0e2JhY2tncm91bmQ6IzE1MjAzMTtwYWRkaW5nOjEwcHg7Ym9yZGVyLXJhZGl1czoxMHB4O2NvbG9yOiNiN2M0ZTY7bWFyZ2luOjhweCAwfSAuZmxleHtkaXNwbGF5OmZsZXg7Z2FwOjEycHg7YWxpZ24taXRlbXM6Y2VudGVyfSAucm93e2Rpc3BsYXk6Z3JpZDtncmlkLXRlbXBsYXRlLWNvbHVtbnM6MWZyIDFmcjtnYXA6MTJweH0gLm10LTJ7bWFyZ2luLXRvcDo4cHh9Lm10LTR7bWFyZ2luLXRvcDoxNnB4fS5tdC04e21hcmdpbi10b3A6MzJweH0gdGV4dGFyZWEsaW5wdXQsc2VsZWN0e3dpZHRoOjEwMCU7cGFkZGluZzoxMHB4O2JhY2tncm91bmQ6IzBlMTIxODtib3JkZXI6MXB4IHNvbGlkIHZhcigtLWJvcmRlcik7Y29sb3I6I2ZmZjtib3JkZXItcmFkaXVzOjEwcHh9IGZvb3Rlcntjb2xvcjp2YXIoLS1tdXRlZCk7dGV4dC1hbGlnbjpjZW50ZXI7cGFkZGluZzozMHB4IDB9IC5oaWRkZW57ZGlzcGxheTpub25lfSAudmlkZW8tY29udGFpbmVye3Bvc2l0aW9uOnJlbGF0aXZlO3dpZHRoOjEwMCU7cGFkZGluZy1ib3R0b206NTYuMjUlO2hlaWdodDowO292ZXJmbG93OmhpZGRlbjtiYWNrZ3JvdW5kOmJsYWNrO2JvcmRlci1yYWRpdXM6MjJweH0gLnZpZGVvLWNvbnRhaW5lciBpZnJhbWV7cG9zaXRpb246YWJzb2x1dGU7dG9wOjA7bGVmdDowO3dpZHRoOjEwMCU7aGVpZ2h0OjEwMCU7Ym9yZGVyOjB9';
+  
+  var encodedHeader = 'PGhlYWRlcj4KICA8ZGl2IGNsYXNzPSJuYXYgY29udGFpbmVyIj4KICAgIDxhIGNsYXNzPSJicmFuZCIgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygnaG9tZScpIj7wn46sIFN0cmVhbWluZ0h1YjwvYT4KICAgIDxmb3JtIG9uc3VibWl0PSJldmVudC5wcmV2ZW50RGVmYXVsdCgpOyBVSS5zZWFyY2godGhpcy5xLnZhbHVlKSIgc3R5bGU9ImZsZXg6MSI+CiAgICAgIDxpbnB1dCB0eXBlPSJzZWFyY2giIG5hbWU9InEiIHBsYWNlaG9sZGVyPSJTemVrYWogZmlsbcOzdyKigKYiIC8+CiAgICA8L2Zvcm0+CiAgICA8bmF2IGNsYXNzPSJtZW51IGZsZXgiPgogICAgICA8YSBpZD0iZmlsbUxpbmsiIGhyZWY9IiMiIG9uY2xpY2s9IlVJLnNob3coJ2hvbWUnKSI+RmlsbXk8L2E+CiAgICAgIDxhIGhyZWY9IiMiIG9uY2xpY2s9IlVJLnNob3coJ3RvcCcpIj5UT1A8L2E+CiAgICAgIDxhIGhyZWY9IiMiIG9uY2xpY2s9IlVJLnNob3coJ21lJykiPk1vamEgYmlibGlvdGVrYTwvYT4KICAgICAgPGEgaWQ9ImFkbWluTGluayIgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygnYWRtaW4nKSIgY2xhc3M9ImhpZGRlbiI+QWRtaW48L2E+CiAgICAgIDxzcGFuIGlkPSJhdXRoTGlua3MiPgogICAgICAgIDxhIGhyZWY9IiMiIG9uY2xpY2s9IlVJLnNob3coJ2xvZ2luJykiPlphbG9ndWo8L2E+CiAgICAgICAgPGEgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygncmVnaXN0ZXInKSIgY2xhc3M9ImJ0biI+UmVqZXN0cmFjamE8L2E+CiAgICAgIDwvc3Bhbj4KICAgICAgPGZvcm0gaWQ9ImxvZ291dEZvcm0iIGNsYXNzPSJoaWRkZW4iIG9uc3VibWl0PSJldmVudC5wcmV2ZW50RGVmYXVsdCgpOyBBdXRoLmxvZ291dCgpIj4KICAgICAgICA8YnV0dG9uIGNsYXNzPSJidG4gc2Vjb25kYXJ5Ij5XeWxvZ3VqPC9idXR0b24+CiAgICAgIDwvZm9ybT4KICAgIDwvbmF2PgogIDwvZGl2Pgo8L2hlYWRlcj4=';
+  
+  var encodedFooter = 'PGZvb3Rlcj7CqSA8c2NyaXB0PmRvY3VtZW50LndyaXRlKG5ldyBEYXRlKCkuZ2V0RnVsbFllYXIoKSk8L3NjcmlwdD4gU3RyZWFtaW5nSHViIOKAoiBmcmVlIHZpZGVvPC9mb290ZXI+';
+
+  // Decode and inject CSS
+  function injectCSS() {
+    try {
+      console.log('[v0] Injecting CSS...');
+      document.getElementById('main-styles').textContent = atob(encodedCSS);
+      console.log('[v0] CSS injected successfully');
+    } catch(e) {
+      console.error('[v0] CSS injection failed:', e);
+    }
+  }
+
+  // Decode and inject HTML
+  function injectHTML() {
+    try {
+      console.log('[v0] Injecting HTML...');
+      document.getElementById('header-container').innerHTML = atob(encodedHeader);
+      document.getElementById('footer-container').innerHTML = atob(encodedFooter);
+      console.log('[v0] HTML injected successfully');
+    } catch(e) {
+      console.error('[v0] HTML injection failed:', e);
+    }
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      injectCSS();
+      injectHTML();
+    });
+  } else {
+    injectCSS();
+    injectHTML();
+  }
+})();
+
+(function(){
+  console.log('[v0] Initializing main application...');
+  
+  // Check if Supabase is loaded
+  if (!window.supabase) {
+    console.error('[v0] Supabase not loaded');
+    document.getElementById('app').innerHTML = '<div class="alert">❌ Błąd ładowania biblioteki</div>';
+    return;
+  }
+
+  // ⚠️ REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ⚠️
+  // Get them from: https://supabase.com/dashboard → Your Project → Settings → API
+  const SUPABASE_URL = "WKLEJ_TUTAJ_PROJECT_URL";  // Example: https://abcdefg.supabase.co
+  const SUPABASE_KEY = "WKLEJ_TUTAJ_ANON_KEY";     // Long string starting with eyJ...
+  
+  if (SUPABASE_URL.includes('WKLEJ_TUTAJ') || SUPABASE_KEY.includes('WKLEJ_TUTAJ')) {
+    console.error('[v0] Supabase credentials not configured!');
+    document.getElementById('app').innerHTML = `
+      <div class="alert">
+        ❌ <strong>Błąd konfiguracji</strong><br>
+        Musisz podmienić dane Supabase w liniach 130-131:<br>
+        1. Idź do <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a><br>
+        2. Wybierz projekt → Settings → API<br>
+        3. Skopiuj Project URL i anon key<br>
+        4. Wklej je w kodzie HTML
+      </div>`;
+    return;
+  }
+
+  console.log('[v0] Creating Supabase client...');
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
+  // Auth module
+  const Auth = {
+    async getCurrentUser() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        return user || null;
+      } catch (error) {
+        console.error('[v0] Auth error:', error);
+        return null;
+      }
+    },
+
+    async getUserProfile() {
+      const user = await this.getCurrentUser();
+      if (!user) return null;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('[v0] Profile fetch error:', error);
+          return null;
+        }
+        
+        return data ? { ...user, ...data } : { ...user };
+      } catch (error) {
+        console.error('[v0] Profile error:', error);
+        return { ...user };
+      }
+    },
+
+    async register(username, email, password) {
+      try {
+        console.log('[v0] Registering user...');
+        const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: password
+        });
+        
+        if (error) {
+          console.error('[v0] Registration error:', error);
+          return alert('❌ ' + error.message);
+        }
+        
+        const user = data.user;
+        
+        // Create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            username: username,
+            points: 0,
+            is_admin: false
+          });
+          
+        if (profileError) {
+          console.error('[v0] Profile creation error:', profileError);
+        }
+        
+        showNotification('✔️ Konto utworzone');
+        UI.show('home');
+      } catch (error) {
+        console.error('[v0] Registration failed:', error);
+        alert('❌ Błąd rejestracji');
+      }
+    },
+
+    async login(email, password) {
+      try {
+        console.log('[v0] Logging in user...');
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+        
+        if (error) {
+          console.error('[v0] Login error:', error);
+          return alert('❌ ' + error.message);
+        }
+        
+        await UI.updateHeader();
+        showNotification('✔️ Zalogowano');
+        UI.show('home');
+      } catch (error) {
+        console.error('[v0] Login failed:', error);
+        alert('❌ Błąd logowania');
+      }
+    },
+
+    async logout() {
+      try {
+        console.log('[v0] Logging out user...');
+        await supabase.auth.signOut();
+        await UI.updateHeader();
+        showNotification('Wylogowano');
+        UI.show('home');
+      } catch (error) {
+        console.error('[v0] Logout failed:', error);
+      }
+    }
+  };
+
+  // Movies module
+  const Movies = {
+    async getMovies(filters = {}) {
+      try {
+        console.log('[v0] Fetching movies with filters:', filters);
+        let query = supabase.from('movies').select('*');
+        
+        if (filters.q) {
+          query = query.ilike('title', '%' + filters.q + '%');
+        }
+        if (filters.category_id) {
+          query = query.eq('category_id', filters.category_id);
+        }
+        if (filters.year) {
+          query = query.eq('year', filters.year);
+        }
+        if (filters.min_duration) {
+          query = query.gte('duration', filters.min_duration);
+        }
+        
+        query = query.order('created_at', { ascending: false });
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('[v0] Movies fetch error:', error);
+          throw error;
+        }
+        
+        console.log('[v0] Movies fetched:', data?.length || 0);
+        return data || [];
+      } catch (error) {
+        console.error('[v0] Movies error:', error);
+        return [];
+      }
+    },
+
+    async getCategories() {
+      try {
+        console.log('[v0] Fetching categories...');
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name');
+          
+        if (error) {
+          console.error('[v0] Categories fetch error:', error);
+          throw error;
+        }
+        
+        console.log('[v0] Categories fetched:', data?.length || 0);
+        return data || [];
+      } catch (error) {
+        console.error('[v0] Categories error:', error);
+        return [];
+      }
+    }
+  };
+
+  // UI module
+  const UI = {
+    getApp: () => document.getElementById('app'),
+
+    async updateHeader() {
+      try {
+        console.log('[v0] Updating header...');
+        const user = await Auth.getUserProfile();
+        
+        const adminLink = document.getElementById('adminLink');
+        const logoutForm = document.getElementById('logoutForm');
+        const authLinks = document.getElementById('authLinks');
+        const filmLink = document.getElementById('filmLink');
+        
+        if (adminLink) {
+          adminLink.classList.toggle('hidden', !(user && user.is_admin));
+        }
+        if (logoutForm) {
+          logoutForm.classList.toggle('hidden', !user);
+        }
+        if (authLinks) {
+          authLinks.classList.toggle('hidden', !!user);
+        }
+        if (filmLink) {
+          if (user) {
+            filmLink.setAttribute('href', 'filmy.html');
+            filmLink.removeAttribute('onclick');
+          } else {
+            filmLink.setAttribute('href', '#');
+            filmLink.setAttribute('onclick', 'UI.show(\'home\')');
+          }
+        }
+        
+        console.log('[v0] Header updated for user:', user ? 'logged in' : 'guest');
+      } catch (error) {
+        console.error('[v0] Header update error:', error);
+      }
+    },
+
+    async show(view, params = {}) {
+      try {
+        console.log('[v0] Showing view:', view, params);
+        const app = UI.getApp();
+        const user = await Auth.getUserProfile();
+        
+        if (view === 'home') {
+          app.innerHTML = '<div class="alert">Ładowanie...</div>';
+          
+          const [categories, movies] = await Promise.all([
+            Movies.getCategories(),
+            Movies.getMovies({ sort: 'new' })
+          ]);
+          
+          const content = await this.renderHome(categories, movies, user);
+          app.innerHTML = content;
+        } else if (view === 'login') {
+          app.innerHTML = await this.renderLogin();
+        } else if (view === 'register') {
+          app.innerHTML = await this.renderRegister();
+        } else {
+          app.innerHTML = '<div class="alert">Nieznany widok: ' + view + '</div>';
+        }
+        
+        console.log('[v0] View rendered:', view);
+      } catch (error) {
+        console.error('[v0] View render error:', error);
+        document.getElementById('app').innerHTML = '<div class="alert">❌ Błąd ładowania</div>';
+      }
+    },
+
+    async renderHome(categories, movies, user) {
+      let html = '<section class="section mt-8">';
+      html += '<h2>Filtruj</h2>';
+      html += this.renderFilters(categories);
+      html += '</section>';
+      
+      html += '<section class="section mt-8">';
+      html += '<h2>Wyniki</h2>';
+      html += '<div class="grid">';
+      
+      if (movies.length === 0) {
+        html += '<div class="alert">Brak filmów</div>';
+      } else {
+        for (const movie of movies) {
+          html += this.renderMovieCard(movie);
+        }
+      }
+      
+      html += '</div></section>';
+      return html;
+    },
+
+    renderMovieCard(movie) {
+      if (!movie) return '';
+      
+      return `<div class="card">
+        <a href="#" onclick="UI.show('movie',{id:${movie.id}})">
+          <img src="${movie.thumb || '/placeholder.svg?height=200&width=300'}" alt="${movie.title || ''}">
+        </a>
+        <div class="card p">
+          <div class="flex" style="justify-content:space-between;">
+            <strong><a href="#" onclick="UI.show('movie',{id:${movie.id}})">${movie.title || ''}</a></strong>
+            <span class="badge">★ -</span>
+          </div>
+          <div class="small mt-2">czas: ${movie.duration || '?'} min • rok: ${movie.year || '?'}</div>
+        </div>
+      </div>`;
+    },
+
+    renderFilters(categories) {
+      return `<form class="form" onsubmit="event.preventDefault(); UI.search(this.q.value)">
+        <div class="row">
+          <div><label>Kategoria</label>
+            <select name="cat">
+              <option value="">—</option>
+              ${categories.map(cat => `<option value="${cat.id}">${cat.name || ''}</option>`).join('')}
+            </select>
+          </div>
+          <div><label>Rok</label><input type="number" name="year"></div>
+        </div>
+        <div class="row">
+          <div><label>Min. długość (min)</label><input type="number" name="min_duration"></div>
+          <div><label>Sortowanie</label>
+            <select name="sort">
+              <option value="new">Najnowsze</option>
+              <option value="title">Tytuł</option>
+            </select>
+          </div>
+        </div>
+        <label>Szukaj</label><input type="text" name="q" placeholder="Tytuł...">
+        <button class="btn mt-4">Szukaj</button>
+      </form>`;
+    },
+
+    async renderLogin() {
+      return `<h1>Logowanie</h1>
+      <form class="mt-4" onsubmit="event.preventDefault(); Auth.login(this.email.value, this.password.value)">
+        <label>Email</label><input required type="email" name="email">
+        <label>Hasło</label><input required type="password" name="password">
+        <button class="btn mt-4">Zaloguj</button>
+      </form>
+      <p class="small mt-2">Nie masz konta? <a href="#" onclick="UI.show('register')">Zarejestruj się</a></p>`;
+    },
+
+    async renderRegister() {
+      return `<h1>Rejestracja</h1>
+      <form class="mt-4" onsubmit="event.preventDefault(); Auth.register(this.username.value, this.email.value, this.password.value)">
+        <label>Nick</label><input required name="username">
+        <label>Email</label><input required type="email" name="email">
+        <label>Hasło (min 6 znaków)</label><input required type="password" name="password" minlength="6">
+        <button class="btn mt-4">Utwórz konto</button>
+      </form>`;
+    },
+
+    async search(query, filters = {}) {
+      try {
+        console.log('[v0] Searching for:', query);
+        const movies = await Movies.getMovies({ q: query, ...filters });
+        const app = UI.getApp();
+        
+        app.innerHTML = `<h3 class="mt-4">Wyniki wyszukiwania</h3>
+        <div class="grid">
+          ${movies.map(movie => this.renderMovieCard(movie)).join('') || '<div class="small">Brak wyników.</div>'}
+        </div>`;
+      } catch (error) {
+        console.error('[v0] Search error:', error);
+      }
+    }
+  };
+
+  // Notification function
+  function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'alert';
+    notification.textContent = message;
+    notification.style.position = 'fixed';
+    notification.style.right = '16px';
+    notification.style.bottom = '16px';
+    notification.style.zIndex = 9999;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3500);
+  }
+
+  // Make modules globally available
+  window.Auth = Auth;
+  window.UI = UI;
+
+  // Initialize application
+  try {
+    console.log('[v0] Setting up auth listener...');
+    supabase.auth.onAuthStateChange(async () => {
+      UI.updateHeader();
+    });
+
+    // Start the application
+    setTimeout(() => {
+      console.log('[v0] Starting application...');
+      UI.updateHeader();
+      UI.show('home');
+    }, 100);
+  } catch (error) {
+    console.error('[v0] Application initialization failed:', error);
+    document.getElementById('app').innerHTML = '<div class="alert">❌ Błąd inicjalizacji</div>';
+  }
+})();
+</script>
+
+</body>
+</html>

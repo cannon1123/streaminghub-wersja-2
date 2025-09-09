@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StreamingHub • Filmy</title>
+  <style id="protected-styles"></style>
+</head>
+<body>
+
+<!-- Anti-debugging protection -->
+<script>
+(function() {
+  'use strict';
+  
+  const blockedKeys = [
+    { key: 'F12' },
+    { key: 'U', ctrl: true },
+    { key: 'I', ctrl: true, shift: true },
+    { key: 'C', ctrl: true, shift: true },
+    { key: 'S', ctrl: true },
+    { key: 'J', ctrl: true, shift: true },
+    { key: 'K', ctrl: true, shift: true }
+  ];
+
+  document.addEventListener('keydown', function(e) {
+    for (let blocked of blockedKeys) {
+      if (e.key === blocked.key && 
+          (!blocked.ctrl || e.ctrlKey) && 
+          (!blocked.shift || e.shiftKey)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }
+  });
+
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  let devtools = { open: false, orientation: null };
+  const threshold = 160;
+
+  setInterval(function() {
+    if (window.outerHeight - window.innerHeight > threshold || 
+        window.outerWidth - window.innerWidth > threshold) {
+      if (!devtools.open) {
+        devtools.open = true;
+        window.location.href = 'https://www.google.com';
+      }
+    } else {
+      devtools.open = false;
+    }
+  }, 500);
+
+})();
+</script>
+
+<!-- Encoded header -->
+<div id="header-encoded"></div>
+
+<main class="container" id="app"></main>
+
+<!-- Encoded footer -->
+<div id="footer-encoded"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+(function() {
+  'use strict';
+
+  // Encoded CSS and HTML content
+  const styleData = 'OnJvb3R7LS1iZzojMGIwZDEwOy0tY2FyZDojMTUxOTIyOy0tdGV4dDojZTNlN2VlOy0tbXV0ZWQ6I2E4YmZlMjstLWJyYW5kOiM0ZjdjZmY7LS1ib3JkZXI6IzIzMmEzN30qe2JveC1zaXppbmc6Ym9yZGVyLWJveH0gYm9keXttYXJnaW46MDtiYWNrZ3JvdW5kOnZhcigtLWJnKTtjb2xvcjp2YXIoLS10ZXh0KTtmb250LWZhbWlseTp1aS1zYW5zLXNlcmlmLHN5c3RlbS11aSwtYXBwbGUtc3lzdGVtLFNlZ29lIFVJLFJvYm90b30gYXtjb2xvcjp2YXIoLS10ZXh0KTt0ZXh0LWRlY29yYXRpb246bm9uZX0gLmNvbnRhaW5lcnttYXgtd2lkdGg6MTEwMHB4O21hcmdpbjowIGF1dG87cGFkZGluZzoxNnB4fSBoZWFkZXJ7cG9zaXRpb246c3RpY2t5O3RvcDowO2JhY2tncm91bmQ6cmdiYSgxMSwxMywxNiwuOCk7YmFja2Ryb3AtZmlsdGVyOmJsdXIoNnB4KTt6LWluZGV4OjEwfSAubmF2e2Rpc3BsYXk6ZmxleDtnYXA6MTJweDthbGlnbi1pdGVtczpjZW50ZXI7cGFkZGluZzoxMnB4IDE2cHh9IC5icmFuZHtmb250LXdlaWdodDo4MDB9IC5uYXYgaW5wdXRbdHlwZT1zZWFyY2hde2ZsZXg6MTtiYWNrZ3JvdW5kOiMwZTEyMTg7Ym9yZGVyOjFweCBzb2xpZCB2YXIoLS1ib3JkZXIpO2NvbG9yOiNmZmY7cGFkZGluZzoxMHB4IDEycHg7Ym9yZGVyLXJhZGl1czoxMnB4fSAubWVudSBhLC5tZW51IGJ1dHRvbntwYWRkaW5nOjhweCAxMHB4O2NvbG9yOnZhcigtLW11dGVkKTtiYWNrZ3JvdW5kOm5vbmU7Ym9yZGVyOm5vbmU7Y3Vyc29yOnBvaW50ZXJ9IC5idG57YmFja2dyb3VuZDp2YXIoLS1icmFuZCk7Y29sb3I6I2ZmZjtwYWRkaW5nOjEwcHggMTRweDtib3JkZXItcmFkaXVzOjEycHg7Ym9yZGVyOm5vbmU7Y3Vyc29yOnBvaW50ZXJ9IC5idG4uc2Vjb25kYXJ5e2JhY2tncm91bmQ6IzJhMzQ0Nn0gLmJhZGdle2ZvbnQtc2l6ZToxMnB4O2NvbG9yOiNmZmY7YmFja2dyb3VuZDojMmEzNDQ2O3BhZGRpbmc6MnB4IDhweDtib3JkZXItcmFkaXVzOjk5OXB4fSAuZ3JpZHtkaXNwbGF5OmdyaWQ7Z3JpZC10ZW1wbGF0ZS1jb2x1bW5zOnJlcGVhdChhdXRvLWZpbGwsbWlubWF4KDIwMHB4LDFmcikpO2dhcDoxMnB4fSAuY2FyZHtiYWNrZ3JvdW5kOnZhcigtLWNhcmQpO2JvcmRlcjoxcHggc29saWQgdmFyKC0tYm9yZGVyKTtib3JkZXItcmFkaXVzOjE0cHg7b3ZlcmZsb3c6aGlkZGVufSAuY2FyZC5we3BhZGRpbmc6MTJweDtib3JkZXI6MH0gLmNhcmQgaW1ne3dpZHRoOjEwMCU7aGVpZ2h0OjIwMHB4O29iamVjdC1maXQ6Y292ZXI7ZGlzcGxheTpibG9ja30gLnNtYWxse2ZvbnQtc2l6ZToxMnB4O2NvbG9yOnZhcigtLW11dGVkKX0gLmFsZXJ0e2JhY2tncm91bmQ6IzE1MjAzMTtwYWRkaW5nOjEwcHg7Ym9yZGVyLXJhZGl1czoxMHB4O2NvbG9yOiMwZTEyMTg7bWFyZ2luOjhweCAwfSAuZmxleHtkaXNwbGF5OmZsZXg7Z2FwOjEycHg7YWxpZ24taXRlbXM6Y2VudGVyfSAucm93e2Rpc3BsYXk6Z3JpZDtncmlkLXRlbXBsYXRlLWNvbHVtbnM6MWZyIDFmcjtnYXA6MTJweH0gLm10LTJ7bWFyZ2luLXRvcDo4cHh9Lm10LTR7bWFyZ2luLXRvcDoxNnB4fS5tdC04e21hcmdpbi10b3A6MzJweH0gdGV4dGFyZWEsaW5wdXQsc2VsZWN0e3dpZHRoOjEwMCU7cGFkZGluZzoxMHB4O2JhY2tncm91bmQ6IzBlMTIxODtib3JkZXI6MXB4IHNvbGlkIHZhcigtLWJvcmRlcik7Y29sb3I6I2ZmZjtib3JkZXItcmFkaXVzOjEwcHh9IGZvb3Rlcntjb2xvcjp2YXIoLS1tdXRlZCk7dGV4dC1hbGlnbjpjZW50ZXI7cGFkZGluZzozMHB4IDB9IC5oaWRkZW57ZGlzcGxheTpub25lfSAudmlkZW8tY29udGFpbmVye3Bvc2l0aW9uOnJlbGF0aXZlO3dpZHRoOjEwMCU7cGFkZGluZy1ib3R0b206NTYuMjUlO2hlaWdodDowO292ZXJmbG93OmhpZGRlbjtiYWNrZ3JvdW5kOmJsYWNrO2JvcmRlci1yYWRpdXM6MjJweH0gLnZpZGVvLWNvbnRhaW5lciBpZnJhbWV7cG9zaXRpb246YWJzb2x1dGU7dG9wOjA7bGVmdDowO3dpZHRoOjEwMCU7aGVpZ2h0OjEwMCU7Ym9yZGVyOjB9';
+  
+  const headerData = 'PGhlYWRlcj4KICA8ZGl2IGNsYXNzPSJuYXYgY29udGFpbmVyIj4KICAgIDxhIGNsYXNzPSJicmFuZCIgaHJlZj0iIyIgb25jbGljaz0iVUkuc2hvdygnaG9tZScpIj7wn46sIFN0cmVhbWluZ0h1YjwvYT4KICAgIDxmb3JtIG9uc3VibWl0PSJldmVudC5wcmV2ZW50RGVmYXVsdCgpOyBVSS5zZWFyY2godGhpcy5xLnZhbHVlKSIgc3R5bGU9ImZsZXg6MSI+CiAgICAgIDxpbnB1dCB0eXBlPSJzZWFyY2giIG5hbWU9InEiIHBsYWNlaG9sZGVyPSJTemVrYWogZmlsbcOzdyKigKYiIC8+CiAgICA8L2Zvcm0+CiAgICA8bmF2IGNsYXNzPSJtZW51IGZsZXgiPgogICAgICA8YSBocmVmPSIjIiBvbmNsaWNrPSJVSS5zaG93KCdob21lJykiPkZpbG15PC9hPgogICAgICA8YSBocmVmPSJpbmRleC5odG1sI3RvcCI+VE9QPC9hPgogICAgICA8YSBocmVmPSJpbmRleC5odG1sI21lIj5Nb2phIGJpYmxpb3Rla2E8L2E+CiAgICAgIDxmb3JtIG9uc3VibWl0PSJldmVudC5wcmV2ZW50RGVmYXVsdCgpOyBBdXRoLmxvZ291dCgpOyB3aW5kb3cubG9jYXRpb249J2luZGV4Lmh0bWwnOyI+CiAgICAgICAgPGJ1dHRvbiBjbGFzcz0iYnRuIHNlY29uZGFyeSI+V3lsb2d1ajwvYnV0dG9uPgogICAgICA8L2Zvcm0+CiAgICA8L25hdj4KICA8L2Rpdj4KPC9oZWFkZXI+';
+
+  // Initialize protected content
+  function initProtectedContent() {
+    document.getElementById('protected-styles').textContent = atob(styleData);
+    document.getElementById('header-encoded').innerHTML = atob(headerData);
+    document.getElementById('footer-encoded').innerHTML = atob('PGZvb3Rlcj7CqSA8c2NyaXB0PmRvY3VtZW50LndyaXRlKG5ldyBEYXRlKCkuZ2V0RnVsbFllYXIoKSk8L3NjcmlwdD4gU3RyZWFtaW5nSHViIOKAoiBmcmVlIHZpZGVvPC9mb290ZXI+');
+  }
+
+  // Supabase config - encoded
+  const config = {
+    url: atob('aHR0cHM6Ly9qam1uYWNvbGVieHNpZm1ubXFrcy5zdXBhYmFzZS5jbw=='),
+    key: atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW1wcWJXNWhZMjlzWldKNGMybG1iVzV0Y1hkeklpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzTlRVM09UY3lORFFzSW1WNGNDSTZNakEzTVRNM016SXlORFI5LjFoTm9CUTR3RHVBX3RfdnNjb3JRNkZSYi1hVzhJeEhFRHh1WktFaG5kdjA=')
+  };
+
+  const db = window.supabase.createClient(config.url, config.key);
+
+  // Protected utility functions
+  const utils = {
+    delay: (ms) => new Promise(r => setTimeout(r, ms)),
+    escapeHtml: (str) => (str || '').replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[s])),
+    toast: (msg) => {
+      const d = document.createElement('div');
+      d.className = 'alert';
+      d.textContent = msg;
+      d.style.position = 'fixed';
+      d.style.right = '16px';
+      d.style.bottom = '16px';
+      d.style.zIndex = 9999;
+      document.body.appendChild(d);
+      setTimeout(() => d.remove(), 2200);
+    }
+  };
+
+  // Protected Auth object
+  const Auth = {
+    async currentUser() {
+      const { data: { user } } = await db.auth.getUser();
+      return user || null;
+    },
+    async currentProfile() {
+      const user = await Auth.currentUser();
+      if (!user) return null;
+      const { data, error } = await db.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (error) { console.error(error); return null; }
+      return data ? { ...user, ...data } : { ...user };
+    },
+    async logout() {
+      await db.auth.signOut();
+      utils.toast('Wylogowano');
+      window.location = 'index.html';
+    }
+  };
+
+  // Protected data access
+  const DataAccess = {
+    async getMovies(filters = {}) {
+      let q = db.from('movies').select('*');
+      if (filters.q) q = q.ilike('title', `%${filters.q}%`);
+      if (filters.category_id) q = q.eq('category_id', filters.category_id);
+      if (filters.year) q = q.eq('year', filters.year);
+      if (filters.min_duration) q = q.gte('duration', filters.min_duration);
+      if (filters.sort === 'new') q = q.order('created_at', { ascending: false });
+      else q = q.order('created_at', { ascending: false });
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+    async getMovie(id) {
+      const { data, error } = await db.from('movies').select('*').eq('id', id).single();
+      if (error) throw error;
+      return data;
+    },
+    async getCategories() {
+      const { data, error } = await db.from('categories').select('*').order('name');
+      if (error) throw error;
+      return data || [];
+    }
+  };
+
+  // Protected UI object
+  const UI = {
+    el: () => document.getElementById('app'),
+    
+    async show(view, params = {}) {
+      const app = UI.el();
+      const me = await Auth.currentProfile();
+
+      if (view === 'home') {
+        const cats = await DataAccess.getCategories();
+        const movies = await DataAccess.getMovies({ sort: 'new' });
+        
+        app.innerHTML = `
+          ${UI.filters(cats)}
+          <section class="section mt-8">
+            <div class="flex" style="justify-content:space-between">
+              <h2>Nowo dodane</h2>
+            </div>
+            <div class="grid">
+              ${movies.map(m => UI.card(m)).join('')}
+            </div>
+          </section>
+        `;
+      }
+      else if (view === 'movie') {
+        const id = Number(params.id);
+        let m;
+        try { 
+          m = await DataAccess.getMovie(id); 
+        } catch { 
+          app.innerHTML = `<div class="alert">Nie znaleziono</div>`; 
+          return; 
+        }
+        
+        app.innerHTML = `
+          <div class="flex" style="justify-content:space-between;">
+            <div>
+              <h1>${utils.escapeHtml(m.title)}</h1>
+              <div class="small">Rok: ${m.year || '?'} • Długość: ${m.duration || '?'} min</div>
+              ${m.points_required ? `<div class="mt-2 alert">Dostęp za: <b>${m.points_required}</b> pkt</div>` : ''}
+            </div>
+          </div>
+          <img class="mt-4" src="${m.thumb}" style="width:100%;max-height:360px;object-fit:cover;border-radius:14px"/>
+          <div class="mt-4"><p>${utils.escapeHtml(m.description || '')}</p></div>
+          <div class="mt-4">
+            ${me ? `<a class="btn" href="#" onclick="UI.show('watch',{id:${m.id}})">Oglądaj</a>` : 
+              `<a class="btn" href="index.html">Zaloguj, aby oglądać</a>`}
+          </div>
+        `;
+      }
+      else if (view === 'watch') {
+        if (!me) return window.location = 'index.html';
+        const id = Number(params.id);
+        const m = await DataAccess.getMovie(id);
+        
+        app.innerHTML = `
+          <div class="flex" style="justify-content:space-between;align-items:center">
+            <h1>Odtwarzacz: ${utils.escapeHtml(m.title)}</h1>
+            <a class="btn secondary" href="#" onclick="UI.show('movie',{id:${m.id}})">← Powrót</a>
+          </div>
+          <div class="video-container mt-4"><iframe src="${m.iframe}" allowfullscreen></iframe></div>
+          <div class="small mt-2">Jakość, głośność i prędkość ustawia hosting iframe.</div>
+        `;
+      }
+    },
+
+    filters(categories) {
+      return `
+      <section class="section mt-8">
+        <h2>Filtruj</h2>
+        <form class="form" onsubmit="event.preventDefault(); UI.search(this.q.value, {
+          category_id:this.cat.value||null, year:this.year.value||null,
+          min_duration:this.len.value||null, sort:this.sort.value
+        })">
+          <div class="row">
+            <div><label>Kategoria</label>
+              <select name="cat"><option value="">—</option>${categories.map(c => `<option value="${c.id}">${utils.escapeHtml(c.name)}</option>`).join('')}</select>
+            </div>
+            <div><label>Rok</label><input type="number" name="year"></div>
+          </div>
+          <label>Szukaj</label><input type="text" name="q" placeholder="Tytuł...">
+          <button class="btn mt-4">Szukaj</button>
+        </form>
+      </section>`;
+    },
+
+    card(m) {
+      if (!m) return '';
+      return `<div class="card">
+        <a href="#" onclick="UI.show('movie',{id:${m.id}})"><img src="${m.thumb}" alt="${utils.escapeHtml(m.title)}"></a>
+        <div class="card p">
+          <div class="flex" style="justify-content:space-between;">
+            <strong><a href="#" onclick="UI.show('movie',{id:${m.id}})">${utils.escapeHtml(m.title)}</a></strong>
+            <span class="badge">★ -</span>
+          </div>
+          <div class="small mt-2">czas: ${m.duration || '?'} min • rok: ${m.year || '?'}</div>
+        </div>
+      </div>`;
+    },
+
+    async search(q, extra = {}) {
+      const cats = await DataAccess.getCategories();
+      const movies = await DataAccess.getMovies({ q, ...extra });
+      const app = UI.el();
+      app.innerHTML = UI.filters(cats) + `
+        <h3 class="mt-4">Wyniki</h3>
+        <div class="grid">${movies.map(m => UI.card(m)).join('') || '<div class="small">Brak wyników.</div>'}</div>
+      `;
+    }
+  };
+
+  // Make UI globally available
+  window.UI = UI;
+  window.Auth = Auth;
+
+  // Initialize when ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initProtectedContent();
+      setTimeout(() => UI.search('', { sort: 'new' }), 100);
+    });
+  } else {
+    initProtectedContent();
+    setTimeout(() => UI.search('', { sort: 'new' }), 100);
+  }
+
+})();
+</script>
+
+</body>
+</html>
