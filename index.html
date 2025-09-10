@@ -10,9 +10,6 @@
 
 <script>
 (function(){
-  // Anti-debugging protection (simplified)
-  var blocked = ['keydown','contextmenu','preventDefault','F12','ctrlKey','shiftKey'];
-  
   document.addEventListener('keydown', function(e) {
     var shortcuts = [
       {key: 'F12'},
@@ -38,24 +35,6 @@
     return false;
   });
   
-  // DevTools detection (less aggressive)
-  var devtools = {open: false};
-  setInterval(function() {
-    if(window.outerHeight - window.innerHeight > 200 || 
-       window.outerWidth - window.innerWidth > 200) {
-      if(!devtools.open) {
-        devtools.open = true;
-        // Only redirect after 3 seconds to avoid false positives
-        setTimeout(() => {
-          if(devtools.open) {
-            window.location.href = 'https://google.com';
-          }
-        }, 3000);
-      }
-    } else {
-      devtools.open = false;
-    }
-  }, 2000);
 })();
 </script>
 
@@ -122,9 +101,24 @@
   }
 
   // ⚠️ REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS ⚠️
-  const SUPABASE_URL = "https://twoj-projekt.supabase.co";
-  const SUPABASE_KEY = "twoj_anon_key_tutaj";
+  // Get them from: https://supabase.com/dashboard → Your Project → Settings → API
+  const SUPABASE_URL = "WKLEJ_TUTAJ_PROJECT_URL";  // Example: https://abcdefg.supabase.co
+  const SUPABASE_KEY = "WKLEJ_TUTAJ_ANON_KEY";     // Long string starting with eyJ...
   
+  if (SUPABASE_URL.includes('WKLEJ_TUTAJ') || SUPABASE_KEY.includes('WKLEJ_TUTAJ')) {
+    console.error('[v0] Supabase credentials not configured!');
+    document.getElementById('app').innerHTML = `
+      <div class="alert">
+        ❌ <strong>Błąd konfiguracji</strong><br>
+        Musisz podmienić dane Supabase w liniach 130-131:<br>
+        1. Idź do <a href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a><br>
+        2. Wybierz projekt → Settings → API<br>
+        3. Skopiuj Project URL i anon key<br>
+        4. Wklej je w kodzie HTML
+      </div>`;
+    return;
+  }
+
   console.log('[v0] Creating Supabase client...');
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   
